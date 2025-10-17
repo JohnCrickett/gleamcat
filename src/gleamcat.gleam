@@ -2,6 +2,7 @@ import argv
 import gleam/dynamic
 import gleam/dynamic/decode
 import gleam/io
+import gleam/list
 import simplifile
 
 type LineResult {
@@ -29,17 +30,23 @@ fn cat_stdin() -> Nil {
   }
 }
 
+fn cat_file(file: String) -> Nil {
+  case simplifile.read(file) {
+    Ok(contents) -> io.print(contents)
+    Error(_) -> io.println("Error: Could not read file '" <> file <> "'")
+  }
+}
+
 pub fn main() -> Nil {
   case argv.load().arguments {
     ["-"] -> {
       cat_stdin()
     }
-    [file] -> {
-      case simplifile.read(file) {
-        Ok(contents) -> io.println(contents)
-        Error(_) -> io.println("Error: Could not read file '" <> file <> "'")
-      }
+    [] -> {
+      io.println("Usage: gleamcat <file> [, <files>]")
     }
-    _ -> io.println("Usage gleamcat <file> [, <files>]")
+    files -> {
+      list.each(files, cat_file)
+    }
   }
 }
