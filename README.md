@@ -35,3 +35,11 @@ curl "https://dummyjson.com/quotes?limit=10&skip=10" | jq '.quotes | .[] | .quot
 "While children are struggling to be unique, the world around them is trying all means to make them look like everybody else."
 "These Capitalists Generally Act Harmoniously And In Concert, To Fleece The People."
 ```
+### Step 2
+
+```bash
+% head -n1 test.txt | gleam run -
+   Compiled in 0.04s
+    Running gleamcat.main
+"Your heart is the size of an ocean. Go find yourself in its hidden depths."
+```
