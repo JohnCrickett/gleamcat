@@ -1,2 +1,37 @@
 # gleamcat
-Gleam solution to Coding Challenges cat
+Gleam solution to [Coding Challenges](https://codingchallenges.fyi/challenges/intro)[build your own cat](https://codingchallenges.fyi/challenges/challenge-cat) project.
+
+## Development
+
+```sh
+gleam run   # Run the project
+gleam test  # Run the tests
+```
+
+## Testing
+
+Grabbing some test data.
+
+```bash
+curl "https://dummyjson.com/quotes?limit=10" | jq '.quotes | .[] | .quote' > test.txt
+curl "https://dummyjson.com/quotes?limit=10&skip=10" | jq '.quotes | .[] | .quote' > test2.txt
+```
+
+### Step 1
+
+```bash
+% gleam run test.txt
+  Compiling gleamcat
+   Compiled in 0.30s
+    Running gleamcat.main
+"Your heart is the size of an ocean. Go find yourself in its hidden depths."
+"The Bay of Bengal is hit frequently by cyclones. The months of November and May, in particular, are dangerous in this regard."
+"Thinking is the capital, Enterprise is the way, Hard Work is the solution."
+"If You Can'T Make It Good, At Least Make It Look Good."
+"Heart be brave. If you cannot be brave, just go. Love's glory is not a small thing."
+"It is bad for a young man to sin; but it is worse for an old man to sin."
+"If You Are Out To Describe The Truth, Leave Elegance To The Tailor."
+"O man you are busy working for the world, and the world is busy trying to turn you out."
+"While children are struggling to be unique, the world around them is trying all means to make them look like everybody else."
+"These Capitalists Generally Act Harmoniously And In Concert, To Fleece The People."
+```
