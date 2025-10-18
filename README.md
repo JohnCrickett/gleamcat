@@ -70,3 +70,22 @@ curl "https://dummyjson.com/quotes?limit=10&skip=10" | jq '.quotes | .[] | .quot
 "Everyone has been made for some particular work, and the desire for that work has been put in every heart."
 "The less of the World, the freer you live."
 ```
+
+### Step 4
+
+```bash
+% head -n3 test.txt | gleam run -- -n -
+1 "Your heart is the size of an ocean. Go find yourself in its hidden depths."
+2 "The Bay of Bengal is hit frequently by cyclones. The months of November and May, in particular, are dangerous in this regard."
+3 "Thinking is the capital, Enterprise is the way, Hard Work is the solution."
+```
+
+### Step 5
+
+```bash
+sed G test.txt | gleam run -- -n - | head -n4
+1 "Your heart is the size of an ocean. Go find yourself in its hidden depths."
+2
+3 "The Bay of Bengal is hit frequently by cyclones. The months of November and May, in particular, are dangerous in this regard."
+4
+```
