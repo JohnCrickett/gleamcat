@@ -136,10 +136,10 @@ pub fn main() -> Nil {
     False -> {
       let files = list.filter(args, fn(arg) { arg != "-n" && arg != "-b" })
       case files {
-        ["-"] -> {
+        ["-"] | [] -> {
           cat_stdin(number_lines, not_blank_lines, 1)
         }
-        [] -> {
+        ["--help"] | ["-h"] -> {
           io.println("Usage: gleamcat <file> [, <files>]")
         }
         files -> {
