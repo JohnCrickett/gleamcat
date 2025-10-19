@@ -1,5 +1,5 @@
 # gleamcat
-Gleam solution to [Coding Challenges](https://codingchallenges.fyi/challenges/intro)[build your own cat](https://codingchallenges.fyi/challenges/challenge-cat) project.
+Gleam solution to the [Coding Challenges](https://codingchallenges.fyi/challenges/intro) project: [build your own cat](https://codingchallenges.fyi/challenges/challenge-cat).
 
 ## Development
 
@@ -83,9 +83,35 @@ curl "https://dummyjson.com/quotes?limit=10&skip=10" | jq '.quotes | .[] | .quot
 ### Step 5
 
 ```bash
-sed G test.txt | gleam run -- -n - | head -n4
+sed G test.txt | gleam run -- -n -
 1 "Your heart is the size of an ocean. Go find yourself in its hidden depths."
 2
 3 "The Bay of Bengal is hit frequently by cyclones. The months of November and May, in particular, are dangerous in this regard."
 4
+5 "Thinking is the capital, Enterprise is the way, Hard Work is the solution."
+6
+7 "If You Can'T Make It Good, At Least Make It Look Good."
+8
+9 "Heart be brave. If you cannot be brave, just go. Love's glory is not a small thing."
+10
+11 "It is bad for a young man to sin; but it is worse for an old man to sin."
+12
+13 "If You Are Out To Describe The Truth, Leave Elegance To The Tailor."
+14
+15 "O man you are busy working for the world, and the world is busy trying to turn you out."
+16
+17 "While children are struggling to be unique, the world around them is trying all means to make them look like everybody else."
+18
+19 "These Capitalists Generally Act Harmoniously And In Concert, To Fleece The People."
+```
+
+And:
+
+```bash
+sed G test.txt | gleam run -- -b -
+1 "Your heart is the size of an ocean. Go find yourself in its hidden depths."
+
+2 "The Bay of Bengal is hit frequently by cyclones. The months of November and May, in particular, are dangerous in this regard."
+
+3 "Thinking is the capital, Enterprise is the way, Hard Work is the solution."
 ```
