@@ -18,94 +18,6 @@ type Mode {
   NumberAllLines
 }
 
-@external(erlang, "io", "get_line")
-fn erlang_get_line(prompt: String) -> dynamic.Dynamic
-
-fn get_line(prompt: String) -> LineResult {
-  case decode.run(erlang_get_line(prompt), decode.string) {
-    Ok(line) -> Line(line)
-    Error(_) -> Eof
-  }
-}
-
-fn cat_stdin(mode: Mode, line_number: Int) -> Nil {
-  case get_line("") {
-    Line(line) -> {
-      case mode {
-        Default -> {
-          io.print(line)
-          cat_stdin(mode, line_number + 1)
-        }
-        NumberNonBlankLines -> {
-          case string.is_empty(string.trim(line)) {
-            True -> {
-              io.println("")
-              cat_stdin(mode, line_number)
-            }
-            False -> {
-              io.print(int.to_string(line_number) <> " " <> line)
-              cat_stdin(mode, line_number + 1)
-            }
-          }
-        }
-        NumberAllLines -> {
-          io.print(int.to_string(line_number) <> " " <> line)
-          cat_stdin(mode, line_number + 1)
-        }
-      }
-    }
-    Eof -> Nil
-  }
-}
-
-fn get_file_line(stream: file_stream.FileStream) -> LineResult {
-  case file_stream.read_line(stream) {
-    Ok(line) -> Line(line)
-    Error(_) -> Eof
-  }
-}
-
-fn cat_file_contents(
-  mode: Mode,
-  line_number: Int,
-  stream: file_stream.FileStream,
-) -> Nil {
-  case get_file_line(stream) {
-    Line(line) -> {
-      case mode {
-        Default -> {
-          io.print(line)
-          cat_file_contents(mode, line_number + 1, stream)
-        }
-        NumberNonBlankLines -> {
-          case string.is_empty(string.trim(line)) {
-            True -> {
-              io.println("")
-              cat_file_contents(mode, line_number, stream)
-            }
-            False -> {
-              io.print(int.to_string(line_number) <> " " <> line)
-              cat_file_contents(mode, line_number + 1, stream)
-            }
-          }
-        }
-        NumberAllLines -> {
-          io.print(int.to_string(line_number) <> " " <> line)
-          cat_file_contents(mode, line_number + 1, stream)
-        }
-      }
-    }
-    Eof -> Nil
-  }
-}
-
-fn cat_file(mode: Mode, file: String) -> Nil {
-  case file_stream.open_read(file) {
-    Ok(stream) -> cat_file_contents(mode, 1, stream)
-    Error(_) -> io.println("Failed to open file")
-  }
-}
-
 pub fn main() -> Nil {
   let args = argv.load().arguments
   let not_blank_lines = list.any(args, fn(arg) { arg == "-b" })
@@ -129,12 +41,78 @@ pub fn main() -> Nil {
           io.println("Usage: gleamcat <file> [, <files>]")
         }
         files -> {
-          list.each(files, fn(file) { cat_file(mode, file) })
+          list.each(files, cat_file(mode, _))
         }
       }
     }
     Error(e) -> {
       io.println(e)
     }
+  }
+}
+
+fn cat_gen(readline: fn() -> LineResult, mode: Mode, line_number: Int) -> Nil {
+  case readline() {
+    Line(line) -> {
+      case mode {
+        Default -> {
+          io.print(line)
+          cat_gen(readline, mode, line_number + 1)
+        }
+        NumberNonBlankLines -> {
+          case string.is_empty(string.trim(line)) {
+            True -> {
+              io.println("")
+              cat_stdin(mode, line_number)
+            }
+            False -> {
+              io.print(int.to_string(line_number) <> " " <> line)
+              cat_gen(readline, mode, line_number + 1)
+            }
+          }
+        }
+        NumberAllLines -> {
+          io.print(int.to_string(line_number) <> " " <> line)
+          cat_gen(readline, mode, line_number + 1)
+        }
+      }
+    }
+    Eof -> Nil
+  }
+}
+
+@external(erlang, "io", "get_line")
+fn erlang_get_line(prompt: String) -> dynamic.Dynamic
+
+fn get_line(prompt: String) -> LineResult {
+  case decode.run(erlang_get_line(prompt), decode.string) {
+    Ok(line) -> Line(line)
+    Error(_) -> Eof
+  }
+}
+
+fn get_line_from_stdin() -> LineResult {
+  get_line("")
+}
+
+fn cat_stdin(mode: Mode, line_number: Int) -> Nil {
+  cat_gen(get_line_from_stdin, mode, line_number)
+}
+
+fn get_line_from_stream(stream: file_stream.FileStream) -> LineResult {
+  case file_stream.read_line(stream) {
+    Ok(line) -> Line(line)
+    Error(_) -> Eof
+  }
+}
+
+fn get_line_fn_for_stream(stream: file_stream.FileStream) -> fn() -> LineResult {
+  fn() { get_line_from_stream(stream) }
+}
+
+fn cat_file(mode: Mode, file: String) -> Nil {
+  case file_stream.open_read(file) {
+    Ok(stream) -> cat_gen(get_line_fn_for_stream(stream), mode, 1)
+    Error(_) -> io.println("Failed to open file")
   }
 }
