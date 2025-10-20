@@ -36,14 +36,20 @@ pub fn main() -> Nil {
       case files {
         ["-"] | [] -> {
           cat_stdin(mode, 1)
+          Nil
         }
         ["--help"] | ["-h"] -> {
           io.println("Usage: gleamcat <file> [, <files>]")
         }
         files -> {
-          list.each(files, cat_file(mode, _))
+          let line_number = 1
+          list.fold(files, line_number, fn(ln, file) {
+            cat_file(mode, file, ln)
+          })
+          Nil
         }
       }
+      Nil
     }
     Error(e) -> {
       io.println(e)
@@ -51,7 +57,7 @@ pub fn main() -> Nil {
   }
 }
 
-fn cat_gen(readline: fn() -> LineResult, mode: Mode, line_number: Int) -> Nil {
+fn cat_gen(readline: fn() -> LineResult, mode: Mode, line_number: Int) -> Int {
   case readline() {
     Line(line) -> {
       case mode {
@@ -77,7 +83,7 @@ fn cat_gen(readline: fn() -> LineResult, mode: Mode, line_number: Int) -> Nil {
         }
       }
     }
-    Eof -> Nil
+    Eof -> line_number
   }
 }
 
@@ -95,7 +101,7 @@ fn get_line_from_stdin() -> LineResult {
   get_line("")
 }
 
-fn cat_stdin(mode: Mode, line_number: Int) -> Nil {
+fn cat_stdin(mode: Mode, line_number: Int) -> Int {
   cat_gen(get_line_from_stdin, mode, line_number)
 }
 
@@ -110,9 +116,12 @@ fn get_line_fn_for_stream(stream: file_stream.FileStream) -> fn() -> LineResult 
   fn() { get_line_from_stream(stream) }
 }
 
-fn cat_file(mode: Mode, file: String) -> Nil {
+fn cat_file(mode: Mode, file: String, line_number: Int) -> Int {
   case file_stream.open_read(file) {
-    Ok(stream) -> cat_gen(get_line_fn_for_stream(stream), mode, 1)
-    Error(_) -> io.println("Failed to open file")
+    Ok(stream) -> cat_gen(get_line_fn_for_stream(stream), mode, line_number)
+    Error(_) -> {
+      io.println("Failed to open file")
+      line_number
+    }
   }
 }
