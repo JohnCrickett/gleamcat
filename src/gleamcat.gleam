@@ -20,8 +20,8 @@ type Mode {
 
 pub fn main() -> Nil {
   let args = argv.load().arguments
-  let not_blank_lines = list.any(args, fn(arg) { arg == "-b" })
-  let number_lines = list.any(args, fn(arg) { arg == "-n" })
+  let not_blank_lines = list.contains(args, "-b")
+  let number_lines = list.contains(args, "-n")
 
   let current_mode = case not_blank_lines, number_lines {
     True, True -> Error("Cannot use both -b and -n flags")
@@ -69,7 +69,7 @@ fn cat_gen(readline: fn() -> LineResult, mode: Mode, line_number: Int) -> Int {
           case string.is_empty(string.trim(line)) {
             True -> {
               io.println("")
-              cat_stdin(mode, line_number)
+              cat_gen(readline, mode, line_number)
             }
             False -> {
               io.print(int.to_string(line_number) <> " " <> line)
@@ -87,6 +87,10 @@ fn cat_gen(readline: fn() -> LineResult, mode: Mode, line_number: Int) -> Int {
   }
 }
 
+fn cat_stdin(mode: Mode, line_number: Int) -> Int {
+  cat_gen(fn() { get_line("") }, mode, line_number)
+}
+
 @external(erlang, "io", "get_line")
 fn erlang_get_line(prompt: String) -> dynamic.Dynamic
 
@@ -97,31 +101,20 @@ fn get_line(prompt: String) -> LineResult {
   }
 }
 
-fn get_line_from_stdin() -> LineResult {
-  get_line("")
-}
-
-fn cat_stdin(mode: Mode, line_number: Int) -> Int {
-  cat_gen(get_line_from_stdin, mode, line_number)
+fn cat_file(mode: Mode, file: String, line_number: Int) -> Int {
+  case file_stream.open_read(file) {
+    Ok(stream) ->
+      cat_gen(fn() { get_line_from_stream(stream) }, mode, line_number)
+    Error(_) -> {
+      io.println("Failed to open file")
+      line_number
+    }
+  }
 }
 
 fn get_line_from_stream(stream: file_stream.FileStream) -> LineResult {
   case file_stream.read_line(stream) {
     Ok(line) -> Line(line)
     Error(_) -> Eof
-  }
-}
-
-fn get_line_fn_for_stream(stream: file_stream.FileStream) -> fn() -> LineResult {
-  fn() { get_line_from_stream(stream) }
-}
-
-fn cat_file(mode: Mode, file: String, line_number: Int) -> Int {
-  case file_stream.open_read(file) {
-    Ok(stream) -> cat_gen(get_line_fn_for_stream(stream), mode, line_number)
-    Error(_) -> {
-      io.println("Failed to open file")
-      line_number
-    }
   }
 }
